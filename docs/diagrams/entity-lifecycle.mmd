@@ -1,0 +1,20 @@
+---
+title: Voyage (Trip) Operational CRUD Lifecycle
+---
+stateDiagram-v2
+    [*] --> Created : POST /api/voyages (VoyageController.createVoyage)
+    Created --> Created : GET /api/voyages/id (VoyageController.getVoyage) read, no state change
+    Created --> Deleted : DB-level DELETE on voyages (no API endpoint) CASCADE expenses and itinerary, SET NULL travel_groups
+    Deleted --> [*]
+
+    note right of Created
+        No status / state / phase column exists on the voyages
+        table or any entity. This diagram is the OPERATIONAL CRUD
+        lifecycle grounded in real VoyageController endpoints and
+        DB cascade rules, NOT an internal status state machine.
+        Only POST (create) and GET (read) endpoints exist.
+        No PUT / PATCH (update) and no DELETE endpoint exist.
+        Deletion is reachable only at the DB level via raw SQL:
+        ON DELETE CASCADE: expenses.voyage_id, itinerary.voyage_id
+        ON DELETE SET NULL: travel_groups.voyage_id
+    end note

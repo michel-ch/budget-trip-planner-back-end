@@ -1,0 +1,95 @@
+%% Budget Trip Planner - Backend service/component structure
+%% Layered REST monolith: Spring Security filter chain -> Controllers -> Services -> Repositories -> PostgreSQL
+%% Edges reflect actual constructor wiring (Lombok @RequiredArgsConstructor / explicit constructors).
+graph TD
+    Client["HTTP Client (Angular @ localhost:4200)"]
+
+    %% --- Spring Security filter chain ---
+    subgraph Security["Spring Security Filter Chain"]
+        JwtFilter["JwtAuthenticationFilter"]
+        JwtUtil["JwtUtil"]
+        UDS["CustomUserDetailsService (UserDetailsService)"]
+    end
+
+    %% --- Controllers (REST entry points) ---
+    subgraph Controllers["REST Controllers"]
+        AuthCtrl["AuthController /api/auth"]
+        UserCtrl["UserController /api/users"]
+        VoyageCtrl["VoyageController /api/voyages"]
+        ExpenseCtrl["ExpenseController /api/expenses"]
+        ImageCtrl["ImageController /api/images"]
+        ItinCtrl["ItineraryController /api/itineraries"]
+        LocCtrl["LocationController /api/locations"]
+        GroupCtrl["TravelGroupController /api/travelgroups"]
+    end
+
+    %% --- Services (business layer) ---
+    subgraph Services["Service Layer"]
+        AuthSvc["AuthService"]
+        UserSvc["UserService"]
+        VoyageSvc["VoyageService"]
+        ExpenseSvc["ExpenseService"]
+        ImageSvc["ImageService"]
+        ItinSvc["ItineraryService"]
+        LocSvc["LocationService"]
+        GroupSvc["TravelGroupService"]
+    end
+
+    %% --- Repositories (Spring Data JPA) ---
+    subgraph Repositories["Data Access Layer (Spring Data JPA)"]
+        UserRepo["UserRepository"]
+        VoyageRepo["VoyageRepository"]
+        ExpenseRepo["ExpenseRepository"]
+        ImageRepo["ImageRepository"]
+        ItinRepo["ItineraryRepository"]
+        LocRepo["LocationRepository"]
+        GroupRepo["TravelGroupRepository"]
+    end
+
+    %% --- External dependency ---
+    subgraph External["External Dependencies"]
+        PG[("PostgreSQL (tripbudgetplanner)")]
+    end
+
+    %% HTTP entry through the security filter chain
+    Client -->|"HTTP/REST"| JwtFilter
+    JwtFilter -->|"validate"| JwtUtil
+    JwtFilter -->|"loadUserByUsername"| UDS
+    UDS -->|"JPA"| UserRepo
+    JwtFilter -->|"authenticated request"| Controllers
+
+    %% /api/auth is permitAll (bypasses JWT validation), still passes through chain
+    Client -->|"HTTP/REST (permitAll)"| AuthCtrl
+
+    %% Controller -> Service wiring
+    AuthCtrl -->|"calls"| AuthSvc
+    UserCtrl -->|"calls"| UserSvc
+    VoyageCtrl -->|"calls"| VoyageSvc
+    ExpenseCtrl -->|"calls"| ExpenseSvc
+    ImageCtrl -->|"calls"| ImageSvc
+    ItinCtrl -->|"calls"| ItinSvc
+    LocCtrl -->|"calls"| LocSvc
+    GroupCtrl -->|"calls"| GroupSvc
+
+    %% AuthService is non-1:1: it uses two repositories plus security collaborators
+    AuthSvc -->|"JPA"| UserRepo
+    AuthSvc -->|"JPA"| LocRepo
+    AuthSvc -->|"generateToken"| JwtUtil
+
+    %% Service -> Repository wiring
+    UserSvc -->|"JPA"| UserRepo
+    VoyageSvc -->|"JPA"| VoyageRepo
+    ExpenseSvc -->|"JPA"| ExpenseRepo
+    ImageSvc -->|"JPA"| ImageRepo
+    ItinSvc -->|"JPA"| ItinRepo
+    LocSvc -->|"JPA"| LocRepo
+    GroupSvc -->|"JPA"| GroupRepo
+
+    %% All repositories persist to a single PostgreSQL instance
+    UserRepo -->|"SQL"| PG
+    VoyageRepo -->|"SQL"| PG
+    ExpenseRepo -->|"SQL"| PG
+    ImageRepo -->|"SQL"| PG
+    ItinRepo -->|"SQL"| PG
+    LocRepo -->|"SQL"| PG
+    GroupRepo -->|"SQL"| PG

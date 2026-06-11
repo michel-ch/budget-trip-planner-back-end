@@ -1,0 +1,100 @@
+erDiagram
+    %% Budget Trip Planner - PostgreSQL schema
+    %% Source: src/main/resources/db/V1__Init_Setup.sql + JPA @Entity classes
+    %% PK = primary key, FK = foreign key. Soft/polymorphic links are NOT FKs (see notes).
+
+    LOCATIONS {
+        int id PK "GENERATED ALWAYS AS IDENTITY"
+        varchar city "NOT NULL, len 150"
+        varchar country "NOT NULL, len 100"
+    }
+
+    IMAGES {
+        int id PK "GENERATED ALWAYS AS IDENTITY"
+        text url "NOT NULL"
+        text object_type "NOT NULL, CHECK IN ('users','voyages')"
+        int object_id "NOT NULL - polymorphic soft ref, NO FK"
+    }
+
+    USERS {
+        int id PK "GENERATED ALWAYS AS IDENTITY"
+        varchar last_name "len 250, nullable"
+        varchar first_name "len 250, nullable"
+        varchar username "NOT NULL, UNIQUE, len 250"
+        varchar password "NOT NULL, len 250"
+        varchar mail "NOT NULL, UNIQUE, len 250"
+        varchar phone_numb "len 20, nullable"
+        date birthday "nullable"
+        int profile_image_id FK "REFERENCES images(id) ON DELETE SET NULL"
+        int location_id FK "REFERENCES locations(id) ON DELETE SET NULL"
+    }
+
+    FRIENDS {
+        int user_id PK,FK "REFERENCES users(id) ON DELETE CASCADE"
+        int friend_id PK,FK "REFERENCES users(id) ON DELETE CASCADE"
+    }
+
+    VOYAGES {
+        int id PK "GENERATED ALWAYS AS IDENTITY"
+        text object_type "NOT NULL, CHECK IN ('users','travel_groups')"
+        int object_id "NOT NULL - polymorphic soft ref, NO FK"
+        text destination "NOT NULL"
+        numeric budget_total "NUMERIC(10,2), NOT NULL"
+        int duration_days "NOT NULL, CHECK > 0"
+        date start_date "nullable"
+        timestamptz created_at "NOT NULL, DEFAULT NOW()"
+        int cover_image_id FK "REFERENCES images(id) ON DELETE SET NULL"
+    }
+
+    TRAVEL_GROUPS {
+        int id PK "GENERATED ALWAYS AS IDENTITY"
+        int voyage_id FK "REFERENCES voyages(id) ON DELETE SET NULL"
+        varchar name "NOT NULL, len 100"
+        timestamptz created_at "NOT NULL, DEFAULT NOW()"
+    }
+
+    GROUP_MEMBERSHIPS {
+        int group_id PK,FK "REFERENCES travel_groups(id) ON DELETE CASCADE"
+        int user_id PK,FK "REFERENCES users(id) ON DELETE CASCADE"
+    }
+
+    EXPENSES {
+        int id PK "GENERATED ALWAYS AS IDENTITY"
+        int voyage_id FK "NOT NULL, UNIQUE, REFERENCES voyages(id) ON DELETE CASCADE"
+        numeric transport_amount "NUMERIC(10,2), NOT NULL, DEFAULT 0, CHECK >= 0"
+        numeric hotel_amount "NUMERIC(10,2), NOT NULL, DEFAULT 0, CHECK >= 0"
+        numeric restaurant_amount "NUMERIC(10,2), NOT NULL, DEFAULT 0, CHECK >= 0"
+        numeric activities_amount "NUMERIC(10,2), NOT NULL, DEFAULT 0, CHECK >= 0"
+        numeric total_amount "NUMERIC(12,2) GENERATED ALWAYS AS (sum of 4 amounts) STORED"
+        char currency "CHAR(3), NOT NULL, DEFAULT 'EUR'"
+        timestamptz created_at "NOT NULL, DEFAULT NOW()"
+    }
+
+    ITINERARY {
+        int id PK "SERIAL"
+        int voyage_id FK "NOT NULL, REFERENCES voyages(id) ON DELETE CASCADE"
+        int day_number "NOT NULL, CHECK > 0"
+        text activity "NOT NULL"
+        timestamptz created_at "NOT NULL, DEFAULT NOW()"
+    }
+
+    %% --- Relationships (each line is a real FK or JPA association) ---
+
+    LOCATIONS ||--o{ USERS : "located in (users.location_id, SET NULL)"
+    IMAGES   ||--o{ USERS : "profile image (users.profile_image_id, SET NULL)"
+    IMAGES   ||--o{ VOYAGES : "cover image (voyages.cover_image_id, SET NULL)"
+
+    USERS ||--o{ FRIENDS : "user_id (CASCADE)"
+    USERS ||--o{ FRIENDS : "friend_id (CASCADE)"
+
+    VOYAGES ||--o{ TRAVEL_GROUPS : "voyage_id (SET NULL)"
+
+    TRAVEL_GROUPS ||--o{ GROUP_MEMBERSHIPS : "group_id (CASCADE)"
+    USERS         ||--o{ GROUP_MEMBERSHIPS : "user_id (CASCADE)"
+
+    VOYAGES ||--|| EXPENSES : "voyage_id (UNIQUE, CASCADE) - 1:1"
+    VOYAGES ||--o{ ITINERARY : "voyage_id (CASCADE), UNIQUE(voyage_id, day_number)"
+
+    %% NOTE: IMAGES.object_type/object_id and VOYAGES.object_type/object_id are
+    %% polymorphic soft references resolved in application code, NOT database FKs.
+    %% They are intentionally NOT drawn as relationship lines above.

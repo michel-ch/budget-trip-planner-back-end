@@ -1,0 +1,202 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="ops" id="ops-l1">
+    <mxGraphModel dx="1200" dy="900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1250" pageHeight="900" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- ===================== TITLE ===================== -->
+        <mxCell id="title" parent="1" vertex="1"
+          style="text;html=1;align=left;verticalAlign=middle;fontStyle=1;fontSize=16;fontColor=#000000;"
+          value="OPS / BUILD / SECRETS (L1) view — Budget Trip Planner back-end&#10;Secondary fluxes only: F4 (ops), F5 (secrets-config), F6 (cicd). All edges dotted.">
+          <mxGeometry x="40" y="20" width="820" height="40" as="geometry"/>
+        </mxCell>
+
+        <!-- ===================== MEGA BOX: Client / External ===================== -->
+        <mxCell id="mega-client" parent="1" vertex="1"
+          style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;align=center;fontStyle=1;fontSize=14;fontColor=#3B5A82;fillColor=#EAF2FD;strokeColor=#6C8EBF;strokeWidth=2;spacingTop=6;"
+          value="Client / External">
+          <mxGeometry x="40" y="90" width="300" height="300" as="geometry"/>
+        </mxCell>
+
+        <!-- ===================== MEGA BOX: Application container (Docker) ===================== -->
+        <mxCell id="mega-app" parent="1" vertex="1"
+          style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;align=center;fontStyle=1;fontSize=14;fontColor=#9A5B00;fillColor=#FFF7E6;strokeColor=#D79B00;strokeWidth=2;spacingTop=6;"
+          value="Application container (Docker)">
+          <mxGeometry x="560" y="90" width="640" height="560" as="geometry"/>
+        </mxCell>
+
+        <!-- ===================== SUB-ZONE: Secrets & Config ===================== -->
+        <mxCell id="zone-secrets" parent="1" vertex="1"
+          style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;align=left;fontStyle=1;fontSize=11;fontColor=#000000;fillColor=none;strokeColor=#bbbbbb;dashed=1;spacingTop=4;"
+          value="Secrets &amp; Config">
+          <mxGeometry x="590" y="400" width="270" height="210" as="geometry"/>
+        </mxCell>
+
+        <!-- ===================== SUB-ZONE: Build ===================== -->
+        <mxCell id="zone-build" parent="1" vertex="1"
+          style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;align=left;fontStyle=1;fontSize=11;fontColor=#000000;fillColor=none;strokeColor=#bbbbbb;dashed=1;spacingTop=4;"
+          value="Build">
+          <mxGeometry x="900" y="400" width="270" height="210" as="geometry"/>
+        </mxCell>
+
+        <!-- ===================== NODES ===================== -->
+        <!-- dev (Client/External, perimeter B colors) -->
+        <mxCell id="dev" parent="1" vertex="1"
+          style="rounded=1;whiteSpace=wrap;html=1;fontSize=10;spacingLeft=20;arcSize=10;fillColor=#DAE8FC;strokeColor=#6C8EBF;fontColor=#000000;"
+          value="Developer IDE / debugger&#10;(dev only)">
+          <mxGeometry x="90" y="190" width="200" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="logo-dev" parent="1" vertex="1"
+          style="sketch=0;outlineConnect=0;html=1;aspect=fixed;shape=mxgraph.aws4.user;fillColor=#5A6C86;strokeColor=#ffffff;"
+          value="">
+          <mxGeometry x="96" y="196" width="20" height="20" as="geometry"/>
+        </mxCell>
+
+        <!-- app (Application, perimeter A colors) -->
+        <mxCell id="app" parent="1" vertex="1"
+          style="rounded=1;whiteSpace=wrap;html=1;fontSize=10;spacingLeft=20;arcSize=10;fillColor=#FFE6CC;strokeColor=#D79B00;fontColor=#000000;"
+          value="Spring Boot app&#10;Java 21, SB 3.5.6, :8080">
+          <mxGeometry x="720" y="150" width="220" height="64" as="geometry"/>
+        </mxCell>
+        <mxCell id="logo-app" parent="1" vertex="1"
+          style="sketch=0;outlineConnect=0;html=1;aspect=fixed;shape=mxgraph.aws4.traditional_server;fillColor=#5A6C86;strokeColor=#ffffff;"
+          value="">
+          <mxGeometry x="726" y="156" width="20" height="20" as="geometry"/>
+        </mxCell>
+
+        <!-- cfg (in Secrets & Config sub-zone, Application colors) -->
+        <mxCell id="cfg" parent="1" vertex="1"
+          style="rounded=1;whiteSpace=wrap;html=1;fontSize=10;spacingLeft=20;arcSize=10;fillColor=#FFE6CC;strokeColor=#D79B00;fontColor=#000000;"
+          value="Config / Secrets source&#10;(container env vars + property keys)">
+          <mxGeometry x="610" y="500" width="230" height="80" as="geometry"/>
+        </mxCell>
+        <mxCell id="logo-cfg" parent="1" vertex="1"
+          style="sketch=0;outlineConnect=0;html=1;aspect=fixed;shape=mxgraph.basic.rect;fillColor=#5A6C86;strokeColor=#ffffff;"
+          value="">
+          <mxGeometry x="616" y="506" width="20" height="20" as="geometry"/>
+        </mxCell>
+
+        <!-- build (in Build sub-zone, Application colors) -->
+        <mxCell id="build" parent="1" vertex="1"
+          style="rounded=1;whiteSpace=wrap;html=1;fontSize=10;spacingLeft=20;arcSize=10;fillColor=#FFE6CC;strokeColor=#D79B00;fontColor=#000000;"
+          value="Docker image build / Maven&#10;(mvn spring-boot:run, dev profile)">
+          <mxGeometry x="920" y="500" width="230" height="80" as="geometry"/>
+        </mxCell>
+        <mxCell id="logo-build" parent="1" vertex="1"
+          style="sketch=0;outlineConnect=0;html=1;aspect=fixed;shape=mxgraph.basic.rect;fillColor=#5A6C86;strokeColor=#ffffff;"
+          value="">
+          <mxGeometry x="926" y="506" width="20" height="20" as="geometry"/>
+        </mxCell>
+
+        <!-- ===================== OFF-PAGE CONNECTOR (port note) ===================== -->
+        <mxCell id="port-runtime" parent="1" vertex="1"
+          style="shape=mxgraph.basic.rect;whiteSpace=wrap;html=1;dashed=1;fontSize=9;fontColor=#000000;fillColor=#F5F5F5;strokeColor=#666666;align=center;verticalAlign=middle;"
+          value="serves runtime traffic &amp; persistence&#10;-&gt; see Runtime view (F1/F2/F3)">
+          <mxGeometry x="1000" y="250" width="180" height="50" as="geometry"/>
+        </mxCell>
+
+        <!-- ===================== EDGES (all dotted = secondary) ===================== -->
+        <!-- F4: dev -> app (left mega to right mega, horizontal corridor) -->
+        <mxCell id="e_F4" parent="1" edge="1" source="dev" target="app"
+          style="edgeStyle=orthogonalEdgeStyle;rounded=1;dashed=1;html=1;endArrow=block;strokeColor=#000000;strokeWidth=1.5;exitX=1;exitY=0.5;entryX=0;entryY=0.3;fontSize=9;fontColor=#000000;labelBackgroundColor=#ffffff;"
+          value="F4 JDWP :5005 (dev only)">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="450" y="220"/>
+              <mxPoint x="450" y="169"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- F5: cfg -> app (cfg below-left, up to app bottom-left) -->
+        <mxCell id="e_F5" parent="1" edge="1" source="cfg" target="app"
+          style="edgeStyle=orthogonalEdgeStyle;rounded=1;dashed=1;html=1;endArrow=block;strokeColor=#000000;strokeWidth=1.5;exitX=0.5;exitY=0;entryX=0.3;entryY=1;fontSize=9;fontColor=#000000;labelBackgroundColor=#ffffff;"
+          value="F5 env vars + property keys">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="725" y="300"/>
+              <mxPoint x="786" y="300"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- F6: build -> app (build below-right, up to app bottom-right) -->
+        <mxCell id="e_F6" parent="1" edge="1" source="build" target="app"
+          style="edgeStyle=orthogonalEdgeStyle;rounded=1;dashed=1;html=1;endArrow=block;strokeColor=#000000;strokeWidth=1.5;exitX=0.5;exitY=0;entryX=0.7;entryY=1;fontSize=9;fontColor=#000000;labelBackgroundColor=#ffffff;"
+          value="F6 docker build, no external CI/CD">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1035" y="350"/>
+              <mxPoint x="874" y="350"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Off-page connector edge: app -> port note (dotted, no F#) -->
+        <mxCell id="e_port" parent="1" edge="1" source="app" target="port-runtime"
+          style="edgeStyle=orthogonalEdgeStyle;rounded=1;dashed=1;html=1;endArrow=open;strokeColor=#666666;strokeWidth=1;exitX=1;exitY=0.7;entryX=0;entryY=0.5;fontSize=8;fontColor=#666666;labelBackgroundColor=#ffffff;"
+          value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="975" y="195"/>
+              <mxPoint x="975" y="275"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- ===================== LEGEND ===================== -->
+        <mxCell id="legend" parent="1" vertex="1"
+          style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;align=left;fontStyle=1;fontSize=11;fontColor=#000000;fillColor=#FFFFFF;strokeColor=#999999;spacingTop=4;"
+          value="Legend">
+          <mxGeometry x="40" y="430" width="300" height="170" as="geometry"/>
+        </mxCell>
+        <mxCell id="legend-cli" parent="1" vertex="1"
+          style="rounded=1;whiteSpace=wrap;html=1;fontSize=9;fillColor=#DAE8FC;strokeColor=#6C8EBF;fontColor=#000000;"
+          value="Client / External node">
+          <mxGeometry x="56" y="460" width="150" height="24" as="geometry"/>
+        </mxCell>
+        <mxCell id="legend-app" parent="1" vertex="1"
+          style="rounded=1;whiteSpace=wrap;html=1;fontSize=9;fillColor=#FFE6CC;strokeColor=#D79B00;fontColor=#000000;"
+          value="Application (Docker) node">
+          <mxGeometry x="56" y="492" width="150" height="24" as="geometry"/>
+        </mxCell>
+        <mxCell id="legend-zone" parent="1" vertex="1"
+          style="rounded=1;whiteSpace=wrap;html=1;fontSize=9;fillColor=none;strokeColor=#bbbbbb;dashed=1;fontColor=#000000;"
+          value="Sub-zone (function grouping)">
+          <mxGeometry x="56" y="524" width="150" height="24" as="geometry"/>
+        </mxCell>
+        <mxCell id="legend-edge" parent="1" vertex="1"
+          style="text;html=1;align=left;verticalAlign=middle;fontSize=9;fontColor=#000000;"
+          value="- - -  dotted arrow = secondary flux&#10;          (ops / secrets-config / cicd)">
+          <mxGeometry x="56" y="556" width="270" height="36" as="geometry"/>
+        </mxCell>
+
+        <!-- ===================== GLOSSARY ===================== -->
+        <mxCell id="glossary" parent="1" vertex="1"
+          style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;align=left;fontStyle=1;fontSize=11;fontColor=#000000;fillColor=#FFFFFF;strokeColor=#999999;spacingTop=4;"
+          value="Glossary">
+          <mxGeometry x="40" y="620" width="500" height="160" as="geometry"/>
+        </mxCell>
+        <mxCell id="glossary-body" parent="1" vertex="1"
+          style="text;html=1;align=left;verticalAlign=top;fontSize=9;fontColor=#000000;"
+          value="JDWP — Java Debug Wire Protocol. Remote-debug socket on port 5005 (F4).&#10;CI/CD — Continuous Integration / Delivery. Automated build/deploy — NOT present in this repo (F6).&#10;SPRING_DATASOURCE_URL / _USERNAME / _PASSWORD — container env vars carrying DB connection + credentials (F5).&#10;jwt.secret / jwt.expiration — application property keys read by JwtUtil (F5; names/keys only, never values).&#10;dt_socket — JDWP socket transport over TCP used by the JVM debug agent (F4).">
+          <mxGeometry x="50" y="646" width="485" height="128" as="geometry"/>
+        </mxCell>
+
+        <!-- ===================== DESCRIPTION PANEL ===================== -->
+        <mxCell id="desc" parent="1" vertex="1"
+          style="rounded=1;whiteSpace=wrap;html=1;verticalAlign=top;align=left;fontStyle=1;fontSize=11;fontColor=#000000;fillColor=#FFFFFF;strokeColor=#999999;spacingTop=4;"
+          value="Flux descriptions (this view)">
+          <mxGeometry x="560" y="670" width="640" height="200" as="geometry"/>
+        </mxCell>
+        <mxCell id="desc-body" parent="1" vertex="1"
+          style="text;html=1;align=left;verticalAlign=top;fontSize=9;fontColor=#000000;"
+          value="F4 — JDWP remote debug (DEV ONLY): Developer IDE attaches to the JVM debug agent on :5005 over dt_socket (TCP). No auth (open dev socket); debug control only, no business data. Must not be exposed in production.&#10;&#10;F5 — Secrets / config injection: container env vars (SPRING_DATASOURCE_URL / _USERNAME / _PASSWORD) and property keys (jwt.secret, jwt.expiration) resolved into the Spring context once at startup. Names/keys only — never values.&#10;&#10;F6 — Image build &amp; run: the Dockerfile primes the Maven cache (mvn dependency:go-offline) then the container CMD runs mvn spring-boot:run (dev profile). NO external CI/CD pipeline (Dockerfile only).&#10;&#10;Note: Spring Boot DevTools / LiveReload and the prod profile are scaffolded / not-wired; not drawn as fluxes.">
+          <mxGeometry x="570" y="696" width="620" height="168" as="geometry"/>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

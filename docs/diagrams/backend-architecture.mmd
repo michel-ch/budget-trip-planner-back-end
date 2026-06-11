@@ -1,0 +1,50 @@
+flowchart TD
+    Client["External Client (e.g. Angular SPA, http://localhost:4200)"]
+
+    subgraph App["Spring Boot Application (port 8080, /api)"]
+        direction TB
+
+        subgraph Security["Spring Security Filter Chain (stateless, CSRF disabled)"]
+            JwtFilter["JwtAuthenticationFilter<br/>(validates Bearer token, sets SecurityContext)"]
+        end
+
+        subgraph Auth["Auth Path (com.planner.app.auth — permitAll /api/auth/**)"]
+            AuthController["AuthController @RestController<br/>POST /api/auth/signin, /signup"]
+            AuthService["AuthService"]
+            JwtUtil["JwtUtil<br/>(issues + validates JWT)"]
+        end
+
+        subgraph Controllers["Controller Layer @RestController (com.planner.app.controller)"]
+            Ctl["Voyage / Expense / Image / Itinerary<br/>Location / TravelGroup / User Controllers"]
+        end
+
+        subgraph Services["Service Layer @Service @Transactional (com.planner.app.service)"]
+            Svc["Voyage / Expense / Image / Itinerary<br/>Location / TravelGroup / User Services"]
+        end
+
+        subgraph Repositories["Repository Layer — Spring Data JPA / Hibernate (com.planner.app.dao)"]
+            Repo["JpaRepository: Voyage / Expense / Image / Itinerary<br/>Location / TravelGroup / User Repositories"]
+        end
+
+        DTO["DTOs (com.planner.app.dto: VoyageDTO, UserDTO)<br/>map request bodies to/from Entities"]
+        Entity["JPA Entities (com.planner.app.entity)<br/>Voyage, Expense, Image, Itinerary, Location, TravelGroup, User"]
+    end
+
+    Postgres[("PostgreSQL<br/>tripbudgetplanner @ 5432<br/>PostgreSQLDialect")]
+
+    Client -->|"HTTPS requests + Authorization: Bearer JWT"| JwtFilter
+
+    JwtFilter -->|"unauthenticated login/register"| AuthController
+    AuthController --> AuthService
+    AuthService --> JwtUtil
+    AuthService --> Svc
+    JwtUtil -.->|"issued JWT returned to client"| Client
+
+    JwtFilter -->|"authenticated requests"| Ctl
+    Ctl --> Svc
+    Svc --> Repo
+    Repo -->|"JDBC"| Postgres
+
+    Ctl -.->|"binds/returns"| DTO
+    Repo -.->|"manages"| Entity
+    DTO -.-> Entity

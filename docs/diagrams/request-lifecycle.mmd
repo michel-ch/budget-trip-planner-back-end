@@ -1,0 +1,40 @@
+sequenceDiagram
+    autonumber
+    actor Client
+    participant Filter as JwtAuthenticationFilter
+    participant JwtUtil
+    participant Ctx as SecurityContext
+    participant Controller as VoyageController
+    participant Service as VoyageService
+    participant Repository as VoyageRepository
+    participant DB as PostgreSQL
+
+    Note over Client,DB: Representative authenticated request — GET /api/voyages/{id}
+
+    Client->>Filter: GET /api/voyages/{id} (Authorization: Bearer JWT)
+    Filter->>Filter: read Authorization header, strip "Bearer " prefix
+    Filter->>JwtUtil: getUsernameFromToken(token)
+    JwtUtil-->>Filter: username (or null if invalid)
+
+    alt token valid (username != null)
+        Filter->>JwtUtil: validateToken(token)
+        JwtUtil-->>Filter: true
+        Filter->>Ctx: setAuthentication(UsernamePasswordAuthenticationToken)
+        Note over Ctx: SecurityContext now authenticated
+        Filter->>Controller: filterChain.doFilter -> getVoyage(id)
+        Controller->>Service: getVoyageById(id)
+        Service->>Repository: findById(id)
+        Repository->>DB: SELECT v FROM Voyage v WHERE v.id = :id
+        DB-->>Repository: row(s)
+        Repository-->>Service: Optional<Voyage>
+        Service-->>Controller: Voyage (or throws RuntimeException if absent)
+        alt voyage found
+            Controller-->>Client: 200 OK + Voyage (JSON)
+        else not found
+            Controller-->>Client: 404 Not Found
+        end
+    else token missing / invalid
+        Note over Filter,Ctx: SecurityContext stays anonymous, filter chain continues
+        Filter->>Ctx: doFilter (no authentication set)
+        Ctx-->>Client: 401 Unauthorized / 403 Forbidden — anyRequest authenticated rejects
+    end

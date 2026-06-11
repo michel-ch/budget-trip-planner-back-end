@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" type="device">
+  <diagram id="budget-trip-planner-architecture" name="System Architecture">
+    <mxGraphModel dx="1422" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- ================= ZONE GROUP BOXES ================= -->
+        <mxCell id="zone_public" value="PUBLIC ZONE - untrusted (outside trust boundary)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f1f3f5;strokeColor=#495057;dashed=1;verticalAlign=top;fontStyle=1;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="940" y="40" width="400" height="260" as="geometry" />
+        </mxCell>
+        <mxCell id="zone_app" value="APPLICATION ZONE - Spring Boot monolith :8080, base path /api" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff9db;strokeColor=#e8a93b;dashed=0;verticalAlign=top;fontStyle=1;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="40" y="60" width="860" height="820" as="geometry" />
+        </mxCell>
+        <mxCell id="zone_data" value="DATA ZONE - trusted backend datastore" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e7f5ff;strokeColor=#1971c2;dashed=1;verticalAlign=top;fontStyle=1;fontSize=13;" vertex="1" parent="1">
+          <mxGeometry x="300" y="940" width="520" height="150" as="geometry" />
+        </mxCell>
+
+        <!-- ================= APP SUB-ZONES ================= -->
+        <mxCell id="zone_security" value="Spring Security filter chain - stateless, CSRF disabled, CORS on" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff0f0;strokeColor=#c92a2a;dashed=1;verticalAlign=top;fontStyle=2;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="60" y="110" width="320" height="320" as="geometry" />
+        </mxCell>
+        <mxCell id="zone_controllers" value="Controller layer @RestController (controller + auth.api)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#868e96;dashed=1;verticalAlign=top;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="410" y="150" width="470" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="zone_services" value="Service layer @Service @Transactional (com.planner.app.service)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#868e96;dashed=1;verticalAlign=top;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="410" y="350" width="470" height="160" as="geometry" />
+        </mxCell>
+        <mxCell id="zone_repos" value="Repository layer - Spring Data JPA / Hibernate (com.planner.app.dao)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#868e96;dashed=1;verticalAlign=top;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="120" y="640" width="700" height="180" as="geometry" />
+        </mxCell>
+
+        <!-- ================= PUBLIC ZONE NODES ================= -->
+        <mxCell id="n_client" value="Angular SPA client&#10;http://localhost:4200&#10;(CORS-allowed origin)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e9ecef;strokeColor=#495057;" vertex="1" parent="1">
+          <mxGeometry x="980" y="80" width="180" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="n_authep" value="Public auth endpoints&#10;/api/auth/** (permitAll)&#10;POST /signin, POST /signup" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e9ecef;strokeColor=#495057;" vertex="1" parent="1">
+          <mxGeometry x="1130" y="200" width="190" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- ================= SECURITY NODES ================= -->
+        <mxCell id="n_jwtfilter" value="JwtAuthenticationFilter&#10;(OncePerRequestFilter)&#10;reads Bearer token" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe3e3;strokeColor=#c92a2a;" vertex="1" parent="1">
+          <mxGeometry x="90" y="160" width="180" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="n_jwtutil" value="JwtUtil&#10;HS256 issue + validate token" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe3e3;strokeColor=#c92a2a;" vertex="1" parent="1">
+          <mxGeometry x="90" y="270" width="180" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="n_userdetails" value="CustomUserDetailsService +&#10;DaoAuthenticationProvider&#10;BCryptPasswordEncoder" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe3e3;strokeColor=#c92a2a;" vertex="1" parent="1">
+          <mxGeometry x="90" y="350" width="200" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- ================= CONTROLLER NODES ================= -->
+        <mxCell id="n_authctl" value="AuthController [LIVE]&#10;/api/auth" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d3f9d8;strokeColor=#2b8a3e;" vertex="1" parent="1">
+          <mxGeometry x="730" y="190" width="130" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="n_voyagectl" value="VoyageController [LIVE]&#10;/api/voyages GET, POST" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d3f9d8;strokeColor=#2b8a3e;" vertex="1" parent="1">
+          <mxGeometry x="430" y="190" width="150" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="n_stubctl" value="Expense / Image / Itinerary /&#10;Location / TravelGroup / User&#10;Controllers [SCAFFOLDED - empty bodies]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3bf;strokeColor=#e8a93b;" vertex="1" parent="1">
+          <mxGeometry x="590" y="185" width="130" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- ================= SERVICE NODES ================= -->
+        <mxCell id="n_authsvc" value="AuthService [LIVE]&#10;login / register" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d3f9d8;strokeColor=#2b8a3e;" vertex="1" parent="1">
+          <mxGeometry x="730" y="390" width="130" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="n_voyagesvc" value="VoyageService [LIVE]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d3f9d8;strokeColor=#2b8a3e;" vertex="1" parent="1">
+          <mxGeometry x="430" y="390" width="150" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="n_stubsvc" value="Expense / Image / Itinerary /&#10;Location / TravelGroup / User&#10;Services [SCAFFOLDED]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3bf;strokeColor=#e8a93b;" vertex="1" parent="1">
+          <mxGeometry x="590" y="385" width="130" height="80" as="geometry" />
+        </mxCell>
+
+        <!-- ================= REPOSITORY NODES ================= -->
+        <mxCell id="n_userrepo" value="UserRepository" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e7e0ff;strokeColor=#6741d9;" vertex="1" parent="1">
+          <mxGeometry x="320" y="710" width="140" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="n_voyagerepo" value="VoyageRepository" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e7e0ff;strokeColor=#6741d9;" vertex="1" parent="1">
+          <mxGeometry x="150" y="710" width="140" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="n_otherrepo" value="Expense / Image / Itinerary /&#10;Location / TravelGroup Repositories" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff3bf;strokeColor=#e8a93b;" vertex="1" parent="1">
+          <mxGeometry x="510" y="700" width="250" height="70" as="geometry" />
+        </mxCell>
+
+        <!-- ================= DATA ZONE NODE ================= -->
+        <mxCell id="n_postgres" value="PostgreSQL  tripbudgetplanner @ localhost:5432&#10;PostgreSQLDialect, HikariCP, ddl-auto=update&#10;entities: User, Voyage, Expense, Itinerary, Image,&#10;Location, TravelGroup (+ friends, group_memberships)&#10;full schema: docs/diagrams/db-schema.mmd" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#d0ebff;strokeColor=#1971c2;" vertex="1" parent="1">
+          <mxGeometry x="380" y="975" width="360" height="105" as="geometry" />
+        </mxCell>
+
+        <!-- ================= EDGES: PUBLIC -> APP (TRUST BOUNDARY) ================= -->
+        <mxCell id="e_client_jwt" value="HTTPS / REST + Bearer JWT [TRUST BOUNDARY]" style="endArrow=block;html=1;strokeColor=#c92a2a;strokeWidth=2;fontSize=10;" edge="1" parent="1" source="n_client" target="n_jwtfilter">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_client_authep" value="HTTPS / REST, no token [TRUST BOUNDARY]" style="endArrow=block;html=1;strokeColor=#c92a2a;strokeWidth=2;fontSize=10;" edge="1" parent="1" source="n_client" target="n_authep">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_authep_authctl" value="routes to (permitAll)" style="endArrow=block;html=1;strokeColor=#495057;fontSize=10;" edge="1" parent="1" source="n_authep" target="n_authctl">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ================= EDGES: SECURITY FILTER CHAIN ================= -->
+        <mxCell id="e_jwt_util" value="getUsernameFromToken / validateToken" style="endArrow=block;html=1;strokeColor=#c92a2a;fontSize=10;" edge="1" parent="1" source="n_jwtfilter" target="n_jwtutil">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_jwt_userdetails" value="loadUserByUsername" style="endArrow=block;html=1;strokeColor=#c92a2a;fontSize=10;" edge="1" parent="1" source="n_jwtfilter" target="n_userdetails">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_jwt_voyagectl" value="authenticated -&gt; SecurityContext set" style="endArrow=block;html=1;strokeColor=#2b8a3e;fontSize=10;" edge="1" parent="1" source="n_jwtfilter" target="n_voyagectl">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_jwt_stubctl" value="authenticated requests" style="endArrow=block;html=1;strokeColor=#868e96;fontSize=10;" edge="1" parent="1" source="n_jwtfilter" target="n_stubctl">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ================= EDGES: AUTH ISSUANCE PATH ================= -->
+        <mxCell id="e_authctl_authsvc" value="calls" style="endArrow=block;html=1;strokeColor=#2b8a3e;fontSize=10;" edge="1" parent="1" source="n_authctl" target="n_authsvc">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_authsvc_jwtutil" value="generateToken" style="endArrow=block;html=1;strokeColor=#c92a2a;fontSize=10;dashed=1;" edge="1" parent="1" source="n_authsvc" target="n_jwtutil">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_authsvc_userdetails" value="encode / authenticate (BCrypt)" style="endArrow=block;html=1;strokeColor=#c92a2a;fontSize=10;dashed=1;" edge="1" parent="1" source="n_authsvc" target="n_userdetails">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_jwtutil_client" value="issues JWT in LoginResponseDTO [TRUST BOUNDARY]" style="endArrow=block;html=1;strokeColor=#c92a2a;strokeWidth=2;dashed=1;fontSize=10;" edge="1" parent="1" source="n_jwtutil" target="n_client">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ================= EDGES: CONTROLLER -> SERVICE -> REPOSITORY ================= -->
+        <mxCell id="e_voyagectl_svc" value="calls" style="endArrow=block;html=1;strokeColor=#2b8a3e;fontSize=10;" edge="1" parent="1" source="n_voyagectl" target="n_voyagesvc">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_stubctl_svc" value="calls" style="endArrow=block;html=1;strokeColor=#868e96;fontSize=10;" edge="1" parent="1" source="n_stubctl" target="n_stubsvc">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_authsvc_userrepo" value="reads/writes" style="endArrow=block;html=1;strokeColor=#2b8a3e;fontSize=10;" edge="1" parent="1" source="n_authsvc" target="n_userrepo">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_voyagesvc_repo" value="reads/writes" style="endArrow=block;html=1;strokeColor=#2b8a3e;fontSize=10;" edge="1" parent="1" source="n_voyagesvc" target="n_voyagerepo">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_userdetails_userrepo" value="findByUsernameOrEmail" style="endArrow=block;html=1;strokeColor=#c92a2a;fontSize=10;" edge="1" parent="1" source="n_userdetails" target="n_userrepo">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_stubsvc_repo" value="reads/writes" style="endArrow=block;html=1;strokeColor=#868e96;fontSize=10;" edge="1" parent="1" source="n_stubsvc" target="n_otherrepo">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- ================= EDGES: REPOSITORY -> DATABASE (TRUST BOUNDARY) ================= -->
+        <mxCell id="e_userrepo_pg" value="JPA / JDBC SQL [TRUST BOUNDARY]" style="endArrow=block;html=1;strokeColor=#1971c2;strokeWidth=2;fontSize=10;" edge="1" parent="1" source="n_userrepo" target="n_postgres">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_voyagerepo_pg" value="JPA / JDBC SQL [TRUST BOUNDARY]" style="endArrow=block;html=1;strokeColor=#1971c2;strokeWidth=2;fontSize=10;" edge="1" parent="1" source="n_voyagerepo" target="n_postgres">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_otherrepo_pg" value="JPA / JDBC SQL [TRUST BOUNDARY]" style="endArrow=block;html=1;strokeColor=#1971c2;strokeWidth=2;fontSize=10;" edge="1" parent="1" source="n_otherrepo" target="n_postgres">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

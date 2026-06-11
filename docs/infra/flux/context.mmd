@@ -1,0 +1,32 @@
+%% CONTEXT (L0) view - Budget Trip Planner back-end
+%% System-as-one-box + external actors; all six top-level fluxes F1-F6.
+%% Filtered view of docs/infra/infra-flux.md. Solid = runtime/primary (F1,F2,F3),
+%% dotted = secondary (F4 ops, F5 secrets-config, F6 cicd).
+flowchart LR
+  subgraph CLIENT["Client / External"]
+    direction TB
+    client["Browser SPA<br/>(Angular dev, localhost:4200)"]
+    dev["Developer IDE / debugger"]
+  end
+
+  subgraph APP["Application container (Docker)"]
+    direction TB
+    app["Budget Trip Planner API<br/>Spring Boot :8080"]
+    subgraph BC["Build & Config"]
+      direction TB
+      cfg["Config / Secrets source<br/>(env vars + property keys)"]
+      build["Docker image build / Maven<br/>(mvn spring-boot:run)"]
+    end
+  end
+
+  subgraph DATA["Data tier"]
+    direction TB
+    db[("PostgreSQL<br/>tripbudgetplanner :5432")]
+  end
+
+  client -->|F1 HTTP REST :8080| app
+  client -->|F2 Bearer JWT| app
+  app -->|F3 JDBC :5432| db
+  dev -.->|F4 JDWP dev only| app
+  cfg -.->|F5 secrets/config| app
+  build -.->|F6 build & run| app

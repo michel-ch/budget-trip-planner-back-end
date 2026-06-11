@@ -1,0 +1,30 @@
+%% OPS / BUILD / SECRETS (L1) view — Budget Trip Planner back-end
+%% Secondary fluxes only: F4 (ops), F5 (secrets-config), F6 (cicd).
+%% Filtered view of docs/infra/infra-flux.md. All edges dotted (secondary).
+%% Shared stable IDs: dev, app, cfg, build (client/sec/db belong to Runtime view).
+flowchart LR
+  subgraph CLIENT["Client / External"]
+    direction TB
+    dev["Developer IDE / debugger<br/>(dev only)"]
+  end
+
+  subgraph APP["Application container (Docker)"]
+    direction TB
+    app["Spring Boot app<br/>Java 21, SB 3.5.6, :8080"]
+    subgraph SECRETS["Secrets & Config"]
+      direction TB
+      cfg["Config / Secrets source<br/>(container env vars + property keys)"]
+    end
+    subgraph BUILD["Build"]
+      direction TB
+      build["Docker image build / Maven<br/>(mvn spring-boot:run, dev profile)"]
+    end
+  end
+
+  dev  -.->|"F4 JDWP :5005 (dev only)"| app
+  cfg  -.->|"F5 env vars + property keys"| app
+  build -.->|"F6 docker build, no external CI/CD"| app
+
+  %% Off-page connector back to the Runtime view (F1/F2/F3)
+  RUNTIME>"serves runtime traffic and persistence -> see Runtime view (F1/F2/F3)"]
+  app -.-> RUNTIME

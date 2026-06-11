@@ -1,0 +1,29 @@
+%% RUNTIME (L1) view — Budget Trip Planner back-end
+%% The request/data path: F1 + F2 + F3 only.
+%% Filtered view of docs/infra/infra-flux.md (category = runtime + auth + data).
+%% Solid = runtime/primary fluxes. sec (Spring Security filter chain) sits in front
+%% of the app service as the entry gate inside the Application container.
+flowchart LR
+  subgraph CLIENT[Client / External]
+    direction TB
+    client["Browser SPA<br/>(Angular, localhost:4200)"]
+  end
+
+  subgraph APP["Application container (Docker)"]
+    direction TB
+    subgraph EDGE[Edge / Auth]
+      direction TB
+      sec["Spring Security filter chain<br/>JwtAuthenticationFilter + JwtUtil<br/>(HMAC256, issuer planner-app, STATELESS)"]
+    end
+    app["Spring Boot app<br/>Java 21, SB 3.5.6, :8080"]
+  end
+
+  subgraph DATA[Data tier]
+    direction TB
+    db[("PostgreSQL<br/>tripbudgetplanner :5432")]
+  end
+
+  client -->|F1 HTTP /api/**| app
+  client -->|F2 Bearer JWT| sec
+  sec -->|validated before service| app
+  app -->|F3 JDBC :5432| db

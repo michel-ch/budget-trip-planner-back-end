@@ -1,0 +1,25 @@
+%% Infrastructure flux summary — Budget Trip Planner (back-end)
+%% On-prem / Docker. F# IDs match docs/infra/infra-flux.md and infra-flux.drawio.
+flowchart LR
+    subgraph Client["Client / External"]
+        SPA["Browser SPA<br/>(Angular dev http://localhost:4200)"]
+        IDE["Developer IDE<br/>(debugger)"]
+    end
+
+    subgraph Docker["Application container (Docker)"]
+        App["Spring Boot app<br/>HTTP :8080 /api · JDWP :5005<br/>Java 21 · Spring Boot 3.5.6"]
+        Env["Container env vars + properties<br/>SPRING_DATASOURCE_* · jwt.secret (keys only)"]
+    end
+
+    subgraph Data["Data tier (PostgreSQL)"]
+        PG[("PostgreSQL<br/>tripbudgetplanner @ 5432")]
+    end
+
+    Build["Docker image build<br/>mvn dependency:go-offline -> mvn spring-boot:run (dev)<br/>no external CI/CD"]
+
+    SPA -->|"F1 HTTP REST/JSON :8080"| App
+    SPA -.->|"F2 Authorization: Bearer JWT (stateless)"| App
+    App -->|"F3 JDBC :5432 (HikariCP)"| PG
+    IDE -.->|"F4 JDWP :5005 (dev only)"| App
+    Env -->|"F5 env/config injection"| App
+    Build -->|"F6 build & run"| App

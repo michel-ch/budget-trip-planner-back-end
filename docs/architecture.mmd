@@ -1,0 +1,92 @@
+%% Budget Trip Planner - System Architecture (as built)
+%% Trust boundaries: Public zone | Application zone (Spring Boot :8080) | Data zone
+%% Source of truth: SecurityConfig.java, JwtAuthenticationFilter.java, Application.java,
+%% controller/ service/ dao/ entity/ packages, dev/prod application.properties.
+%% Detailed table schema lives in docs/diagrams/db-schema.mmd (erDiagram) - not duplicated here.
+flowchart TD
+
+    subgraph Public["PUBLIC ZONE - untrusted (outside trust boundary)"]
+        direction TB
+        Client["Angular SPA client<br/>http://localhost:4200<br/>(CORS-allowed origin)"]
+        AuthEp["Public auth endpoints<br/>/api/auth/** (permitAll)<br/>POST /signin, POST /signup"]
+    end
+
+    subgraph App["APPLICATION ZONE - Spring Boot monolith :8080, base path /api"]
+        direction TB
+
+        subgraph Security["Spring Security filter chain - stateless, CSRF disabled, CORS on"]
+            direction TB
+            JwtFilter["JwtAuthenticationFilter<br/>(OncePerRequestFilter)<br/>reads Bearer token"]
+            JwtUtil["JwtUtil<br/>HS256 issue + validate token"]
+            UserDetails["CustomUserDetailsService +<br/>DaoAuthenticationProvider<br/>BCryptPasswordEncoder"]
+        end
+
+        subgraph Controllers["Controller layer @RestController (com.planner.app.controller + auth.api)"]
+            direction TB
+            AuthCtl["AuthController  [LIVE]<br/>/api/auth"]
+            VoyageCtl["VoyageController  [LIVE]<br/>/api/voyages GET, POST"]
+            StubCtl["Expense / Image / Itinerary /<br/>Location / TravelGroup / User<br/>Controllers  [SCAFFOLDED - empty bodies]"]
+        end
+
+        subgraph Services["Service layer @Service @Transactional (com.planner.app.service)"]
+            direction TB
+            AuthSvc["AuthService  [LIVE]<br/>login / register"]
+            VoyageSvc["VoyageService  [LIVE]"]
+            StubSvc["Expense / Image / Itinerary /<br/>Location / TravelGroup / User<br/>Services  [SCAFFOLDED]"]
+        end
+
+        subgraph Repos["Repository layer - Spring Data JPA / Hibernate (com.planner.app.dao)"]
+            direction TB
+            UserRepo["UserRepository"]
+            VoyageRepo["VoyageRepository"]
+            OtherRepo["Expense / Image / Itinerary /<br/>Location / TravelGroup<br/>Repositories"]
+        end
+    end
+
+    subgraph Data["DATA ZONE - trusted backend datastore"]
+        direction TB
+        Postgres[("PostgreSQL  tripbudgetplanner @ localhost:5432<br/>PostgreSQLDialect, HikariCP, ddl-auto=update<br/>entities: User, Voyage, Expense, Itinerary,<br/>Image, Location, TravelGroup (+ friends,<br/>group_memberships join tables)<br/>full schema: docs/diagrams/db-schema.mmd")]
+    end
+
+    %% ---- Public -> Application (trust-boundary crossings) ----
+    Client -->|"HTTPS / REST + Authorization: Bearer JWT  [TRUST BOUNDARY]"| JwtFilter
+    Client -->|"HTTPS / REST, no token  [TRUST BOUNDARY]"| AuthEp
+    AuthEp -->|"routes to (permitAll)"| AuthCtl
+
+    %% ---- Security filter chain ----
+    JwtFilter -->|"getUsernameFromToken / validateToken"| JwtUtil
+    JwtFilter -->|"loadUserByUsername"| UserDetails
+    JwtFilter -->|"authenticated -> SecurityContext set"| VoyageCtl
+    JwtFilter -->|"authenticated requests"| StubCtl
+
+    %% ---- Auth issuance path ----
+    AuthCtl -->|"calls"| AuthSvc
+    AuthSvc -->|"generateToken"| JwtUtil
+    AuthSvc -->|"encode / authenticate (BCrypt)"| UserDetails
+    JwtUtil -.->|"issues JWT in LoginResponseDTO  [TRUST BOUNDARY]"| Client
+
+    %% ---- Controller -> Service -> Repository (dependency direction) ----
+    VoyageCtl -->|"calls"| VoyageSvc
+    StubCtl -->|"calls"| StubSvc
+
+    AuthSvc -->|"reads/writes"| UserRepo
+    VoyageSvc -->|"reads/writes"| VoyageRepo
+    UserDetails -->|"findByUsernameOrEmail"| UserRepo
+    StubSvc -->|"reads/writes"| OtherRepo
+
+    %% ---- Repository -> Database (trust-boundary crossing into Data zone) ----
+    UserRepo -->|"JPA / JDBC SQL  [TRUST BOUNDARY]"| Postgres
+    VoyageRepo -->|"JPA / JDBC SQL  [TRUST BOUNDARY]"| Postgres
+    OtherRepo -->|"JPA / JDBC SQL  [TRUST BOUNDARY]"| Postgres
+
+    classDef live fill:#d3f9d8,stroke:#2b8a3e,color:#000;
+    classDef stub fill:#fff3bf,stroke:#e8a93b,color:#000;
+    classDef sec fill:#ffe3e3,stroke:#c92a2a,color:#000;
+    classDef store fill:#d0ebff,stroke:#1971c2,color:#000;
+    classDef ext fill:#e9ecef,stroke:#495057,color:#000;
+
+    class AuthCtl,VoyageCtl,AuthSvc,VoyageSvc live;
+    class StubCtl,StubSvc,OtherRepo stub;
+    class JwtFilter,JwtUtil,UserDetails sec;
+    class Postgres store;
+    class Client,AuthEp ext;

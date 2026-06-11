@@ -1,0 +1,75 @@
+sequenceDiagram
+    autonumber
+    actor Client
+    participant AuthController
+    participant AuthService
+    participant AuthManager as AuthenticationManager
+    participant CUDS as CustomUserDetailsService
+    participant Encoder as BCryptPasswordEncoder
+    participant JwtUtil
+    participant JwtFilter as JwtAuthenticationFilter
+    participant UserRepo as UserRepository
+    participant DB as PostgreSQL
+
+    Note over Client,DB: Registration flow (POST /api/auth/signup)
+    Client->>AuthController: POST /api/auth/signup (RegisterRequest)
+    AuthController->>AuthService: register(request)
+    AuthService->>UserRepo: existsByUsername / existsByMail
+    UserRepo->>DB: SELECT COUNT(u) ...
+    DB-->>UserRepo: count
+    UserRepo-->>AuthService: boolean
+    AuthService->>Encoder: encode(rawPassword)
+    Encoder-->>AuthService: bcrypt hash
+    AuthService->>UserRepo: save(user)
+    UserRepo->>DB: INSERT user (+ location)
+    DB-->>UserRepo: saved User
+    UserRepo-->>AuthService: User
+    AuthService-->>AuthController: UserDTO
+    AuthController-->>Client: 201 Created (UserDTO)
+
+    Note over Client,DB: Login flow (POST /api/auth/signin)
+    Client->>AuthController: POST /api/auth/signin (LoginDTO)
+    AuthController->>AuthService: login(request)
+    AuthService->>AuthManager: authenticate(UsernamePasswordAuthenticationToken)
+    AuthManager->>CUDS: loadUserByUsername(username)
+    CUDS->>UserRepo: findByUsernameOrEmail(username)
+    UserRepo->>DB: SELECT u WHERE username OR mail
+    DB-->>UserRepo: User (hashed password)
+    UserRepo-->>CUDS: User
+    CUDS-->>AuthManager: UserDetails
+    AuthManager->>Encoder: matches(rawPassword, storedHash)
+    Encoder-->>AuthManager: true / false
+    alt credentials valid
+        AuthManager-->>AuthService: Authentication
+        AuthService->>JwtUtil: generateToken(username)
+        JwtUtil-->>AuthService: signed JWT (HMAC256)
+        AuthService->>UserRepo: findByUsernameOrEmailDTO(username)
+        UserRepo->>DB: SELECT new UserDTO ...
+        DB-->>UserRepo: UserDTO
+        UserRepo-->>AuthService: UserDTO
+        AuthService-->>AuthController: LoginResponseDTO (token + user + message)
+        AuthController-->>Client: 200 OK (token, user, "Login successful")
+    else BadCredentialsException
+        AuthService-->>AuthController: RuntimeException("Invalid username or password")
+        AuthController-->>Client: 401 Unauthorized (message)
+    end
+
+    Note over Client,DB: Authenticated request to a protected route
+    Client->>JwtFilter: GET /api/... (Authorization: Bearer <token>)
+    JwtFilter->>JwtUtil: getUsernameFromToken(token)
+    JwtUtil-->>JwtFilter: username (or null)
+    alt username present and no existing authentication
+        JwtFilter->>CUDS: loadUserByUsername(username)
+        CUDS->>UserRepo: findByUsernameOrEmail(username)
+        UserRepo->>DB: SELECT u WHERE username OR mail
+        DB-->>UserRepo: User
+        UserRepo-->>CUDS: User
+        CUDS-->>JwtFilter: UserDetails
+        JwtFilter->>JwtUtil: validateToken(token)
+        JwtUtil-->>JwtFilter: true / false
+        alt token valid
+            JwtFilter->>JwtFilter: set SecurityContext (UsernamePasswordAuthenticationToken)
+        end
+    end
+    JwtFilter->>JwtFilter: filterChain.doFilter(request, response)
+    JwtFilter-->>Client: protected resource (200) or 401/403 if unauthenticated

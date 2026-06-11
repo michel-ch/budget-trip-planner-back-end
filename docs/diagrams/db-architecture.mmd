@@ -1,0 +1,10 @@
+flowchart LR
+    %% Physical data path actually configured in this project.
+    %% No cache, no read replica, no Redis are configured.
+
+    app["Spring Boot application<br/>budget_trip_planner<br/>Spring Data JPA / Hibernate<br/>(PostgreSQLDialect, ddl-auto=update)"]
+    pool["HikariCP connection pool<br/>(Spring Boot default DataSource)"]
+    db[("PostgreSQL<br/>database: tripbudgetplanner<br/>host: localhost : 5432")]
+
+    app -->|"JDBC (org.postgresql.Driver)"| pool
+    pool -->|"TCP 5432"| db
