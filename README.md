@@ -103,7 +103,7 @@ The application is a single Spring Boot monolith with a classic layered design: 
 
 The same system grouped into public / application / data **trust zones** is also maintained as an editable draw.io schema:
 
-![System architecture - trust zones](./docs/images/architecture.png)
+![System architecture - trust zones](./docs/images/architecture-drawio.png)
 
 - Editable draw.io schema: [docs/architecture.drawio](./docs/architecture.drawio)
 - Mermaid source: [docs/architecture.mmd](./docs/architecture.mmd)
@@ -165,20 +165,20 @@ The project ships a focused, deterministic test suite under `src/test/java` (18 
 
 Deployment is an on-prem / Docker setup: a single dev-mode container (`maven:3.9-eclipse-temurin-21-alpine`) runs the Spring Boot app via `mvn spring-boot:run` on the `dev` profile, exposing ports `8080` (application HTTP) and `5005` (JDWP remote debug). It persists to a separately provided PostgreSQL instance on port `5432`. The runtime fluxes (F1-F6) cover HTTP REST traffic, stateless JWT auth, JDBC persistence, the dev-only JDWP debug socket, secrets/config injection, and the Docker image build & run. No cloud provider, CI/CD pipeline, or external object storage was detected.
 
-![Infrastructure flux](./docs/images/infra-architecture.png)
+![Infrastructure flux](./docs/images/infra-flux-drawio.png)
 
 - Single-diagram editable schema: [docs/infra/infra-flux.drawio](./docs/infra/infra-flux.drawio)
 - Flux reference (F1-F6 with `file:line` evidence): [docs/infra/infra-flux.md](./docs/infra/infra-flux.md)
 
 #### Flux diagram set (C4 views, editable draw.io)
 
-The same F1-F6 model is also split into a C4-style set of editable draw.io schemas - one master plus three filtered views - kept consistent by stable component IDs and global flux numbers. The previews below are rendered from the matching Mermaid sources; the `.drawio` files are the editable equivalents.
+The same F1-F6 model is also split into a C4-style set of editable draw.io schemas - one master plus three filtered views - kept consistent by stable component IDs and global flux numbers. The Runtime and Ops previews are rendered directly from their `.drawio` files; the Context preview is from its Mermaid mirror.
 
 | View | Preview | Editable schema | Fluxes |
 |------|---------|-----------------|--------|
 | Context (L0) | ![Context view](./docs/images/flux-context.png) | [context.drawio](./docs/infra/flux/context.drawio) | F1-F6 (top level) |
-| Runtime (L1) | ![Runtime view](./docs/images/flux-runtime.png) | [runtime.drawio](./docs/infra/flux/runtime.drawio) | F1, F2, F3 |
-| Ops / Build (L1) | ![Ops view](./docs/images/flux-ops.png) | [ops.drawio](./docs/infra/flux/ops.drawio) | F4, F5, F6 |
+| Runtime (L1) | ![Runtime view](./docs/images/flux-runtime-drawio.png) | [runtime.drawio](./docs/infra/flux/runtime.drawio) | F1, F2, F3 |
+| Ops / Build (L1) | ![Ops view](./docs/images/flux-ops-drawio.png) | [ops.drawio](./docs/infra/flux/ops.drawio) | F4, F5, F6 |
 
 - Combined multi-page file (context / runtime / ops as pages): [docs/infra/flux/flux.drawio](./docs/infra/flux/flux.drawio)
 - Master flux model + component registry + view index: [docs/infra/flux/flux-model.md](./docs/infra/flux/flux-model.md)

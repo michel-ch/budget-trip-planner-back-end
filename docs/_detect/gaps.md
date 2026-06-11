@@ -16,13 +16,15 @@ Each item states the gap and the artifact that would be needed to document it.
   `.circleci/`. Build/test/deploy is manual (Maven Wrapper / Docker).
 - **Needed to document:** A pipeline definition file describing build, test, and deployment stages.
 
-## No automated test classes
+## Limited automated test coverage (no integration tests)
 
-- **Gap:** There is no `src/test` directory at all — only `src/main`. The only test-related
-  artifact is the `spring-security-test` dependency (`test` scope) in `pom.xml`; no test classes
-  exist to run. `spring-boot-starter-test` is not even declared.
-- **Needed to document:** Actual test sources under `src/test/java` (and likely
-  `spring-boot-starter-test`) to describe a test suite or coverage.
+- **Gap:** A focused suite now exists under `src/test/java` (18 tests: `JwtUtilTest`,
+  `AuthServiceTest`, `AuthControllerTest`, `VoyageControllerTest`) built on
+  `spring-boot-starter-test` (JUnit 5, Mockito, MockMvc) plus `spring-security-test`. It runs
+  without a database via pure unit tests and `@WebMvcTest` slices. Still absent: full-context
+  `@SpringBootTest` integration tests and DB-backed repository/integration tests.
+- **Needed to document:** An H2 or Testcontainers datasource wired for integration tests, to
+  exercise the JPA repository layer and the full application context end to end.
 
 ## No `docker-compose` / external PostgreSQL provisioning
 

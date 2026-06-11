@@ -20,7 +20,7 @@ Internal notes derived directly from the source code. Documents only what is imp
 | Method | Path | Handler | Request body | Success | Failure |
 |--------|------|---------|--------------|---------|---------|
 | POST | `/api/auth/signin` | `loginUser` | `LoginDTO { username, password }` | `200 OK` → `LoginResponseDTO { token, user, message }` | `401 UNAUTHORIZED` with `message` set, on `RuntimeException` |
-| POST | `/api/auth/signup` | `registerUser` | `RegisterRequest { firstName, lastName, username, mail, password, birthday, city, country }` | `201 CREATED` → `UserDTO` | `400 BAD_REQUEST` (empty body) on `RuntimeException` |
+| POST | `/api/auth/signup` | `registerUser` | `RegisterRequest { firstName, lastName, username, mail, password, birthday, city, country }` | `201 CREATED` → `UserDTO` | `400 BAD_REQUEST` with the exception message in the body, on `RuntimeException` |
 
 > No refresh-token endpoint and no logout endpoint exist in the code. Tokens are simply allowed to expire.
 
@@ -91,5 +91,5 @@ Internal notes derived directly from the source code. Documents only what is imp
 - **JWT secret is committed** in `application.properties` (both `dev` and `prod`) as a short, weak HS256 key. It should be externalized (env var / secret manager) and lengthened; not reproduced here.
 - **No authorities/roles** anywhere: `CustomUserDetailsService` returns an empty authority list and no claims carry roles. Authorization is effectively all-or-nothing (authenticated vs not).
 - `JwtAuthenticationFilter` loads the user from the DB **before** calling `validateToken`, i.e. a DB hit occurs even for tokens that later fail validation (minor inefficiency, not a vulnerability).
-- `registerUser` swallows the exception message and returns an empty `400` body, so the client cannot distinguish "username exists" vs "email exists".
+- `registerUser` returns the exception message in the `400` body (so the client can distinguish "username exists" vs "email exists"), mirroring `loginUser`'s error style.
 - `isTokenExpired` in `JwtUtil` is unused; expiry is enforced implicitly by `JWTVerifier.verify` inside `validateToken` / `getUsernameFromToken`.

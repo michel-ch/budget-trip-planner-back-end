@@ -68,12 +68,9 @@ The map is **not** a clean 1 controller -> 1 service -> 1 repository for every d
    security beans (`JwtUtil`, `PasswordEncoder`, `AuthenticationManager`).
 3. **`CustomUserDetailsService` also reads `UserRepository`,** so `UserRepository`
    has two consumers (`AuthService` and the security chain) in addition to `UserService`.
-4. **`ImageController` has a stale import.** It imports both
-   `com.planner.app.service.ExpenseService` and
-   `com.planner.app.service.ImageService`, but only declares a `final ImageService`
-   field. There is **no `ExpenseService` dependency** in `ImageController` — the
-   import is unused. The diagram therefore wires `ImageController` to `ImageService`
-   only. (Minor dead import, noted, not modified.)
+4. **`ImageController` depends only on `ImageService`.** It declares a single
+   `final ImageService` field; the previously-present unused `ExpenseService` import
+   has been removed. The diagram wires `ImageController` to `ImageService` only.
 
 The remaining six domain controllers are genuine 1:1:1 chains.
 
