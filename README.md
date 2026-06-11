@@ -20,7 +20,7 @@ Use the Maven Wrapper:
 ```bash
 # Linux / macOS
 ./mvnw clean package          # build + repackage executable jar
-./mvnw test                   # run tests (no test sources currently exist)
+./mvnw test                   # run the test suite (JUnit 5 / Spring Boot Test, 18 tests)
 
 # Windows
 mvnw.cmd clean package
@@ -91,7 +91,7 @@ Two Maven profiles exist: `dev` (default) and `prod`. Each one filters and packa
 | Boilerplate | Lombok (`org.projectlombok:lombok`, optional; excluded from repackage) | BOM-governed |
 | Dev loop | spring-boot-devtools (`runtime`, optional) | BOM-governed |
 | Config metadata | spring-boot-configuration-processor (optional) | BOM-governed |
-| Test (dep only) | spring-security-test (`test` scope) | BOM-governed |
+| Testing | JUnit 5 + Spring Boot Test (spring-boot-starter-test) + Mockito + MockMvc + spring-security-test | BOM-governed (`test` scope) |
 | Container | Docker (`maven:3.9-eclipse-temurin-21-alpine` base image) | — |
 | License | MIT | (c) 2025 Michel |
 
@@ -100,6 +100,13 @@ Two Maven profiles exist: `dev` (default) and `prod`. Each one filters and packa
 The application is a single Spring Boot monolith with a classic layered design: REST controllers under `/api/**` delegate to a `@Service` business layer, which persists through Spring Data JPA repositories to a single PostgreSQL database. Dependency injection is constructor-based throughout (mostly via Lombok `@RequiredArgsConstructor`). The intended client is an external Angular SPA (CORS origin `http://localhost:4200`, configured in `SecurityConfig`); no frontend lives in this repository.
 
 ![Architecture overview](./docs/images/backend-architecture.png)
+
+The same system grouped into public / application / data **trust zones** is also maintained as an editable draw.io schema:
+
+![System architecture - trust zones](./docs/images/architecture.png)
+
+- Editable draw.io schema: [docs/architecture.drawio](./docs/architecture.drawio)
+- Mermaid source: [docs/architecture.mmd](./docs/architecture.mmd)
 
 ### Database schema
 
@@ -150,14 +157,31 @@ An authenticated request enters through `JwtAuthenticationFilter`, which extract
 
 ![Request lifecycle](./docs/images/request-lifecycle.png)
 
+### Testing
+
+The project ships a focused, deterministic test suite under `src/test/java` (18 tests) built on JUnit 5, Spring Boot Test, Mockito, MockMvc, and `spring-security-test`. It runs **without a database**: `JwtUtilTest` and `AuthServiceTest` are pure unit tests, while `AuthControllerTest` and `VoyageControllerTest` use `@WebMvcTest` web-layer slices (public-vs-protected access, the sign-up error body, and JWT-gated voyage routes). Run it with `./mvnw test` (requires JDK 21). Full-context `@SpringBootTest` / DB-integration tests are not yet present. See [TESTING.md](./TESTING.md) for conventions.
+
 ### Infrastructure
 
 Deployment is an on-prem / Docker setup: a single dev-mode container (`maven:3.9-eclipse-temurin-21-alpine`) runs the Spring Boot app via `mvn spring-boot:run` on the `dev` profile, exposing ports `8080` (application HTTP) and `5005` (JDWP remote debug). It persists to a separately provided PostgreSQL instance on port `5432`. The runtime fluxes (F1-F6) cover HTTP REST traffic, stateless JWT auth, JDBC persistence, the dev-only JDWP debug socket, secrets/config injection, and the Docker image build & run. No cloud provider, CI/CD pipeline, or external object storage was detected.
 
 ![Infrastructure flux](./docs/images/infra-architecture.png)
 
-- Editable diagram: [docs/infra/infra-flux.drawio](./docs/infra/infra-flux.drawio)
-- Flux reference: [docs/infra/infra-flux.md](./docs/infra/infra-flux.md)
+- Single-diagram editable schema: [docs/infra/infra-flux.drawio](./docs/infra/infra-flux.drawio)
+- Flux reference (F1-F6 with `file:line` evidence): [docs/infra/infra-flux.md](./docs/infra/infra-flux.md)
+
+#### Flux diagram set (C4 views, editable draw.io)
+
+The same F1-F6 model is also split into a C4-style set of editable draw.io schemas - one master plus three filtered views - kept consistent by stable component IDs and global flux numbers. The previews below are rendered from the matching Mermaid sources; the `.drawio` files are the editable equivalents.
+
+| View | Preview | Editable schema | Fluxes |
+|------|---------|-----------------|--------|
+| Context (L0) | ![Context view](./docs/images/flux-context.png) | [context.drawio](./docs/infra/flux/context.drawio) | F1-F6 (top level) |
+| Runtime (L1) | ![Runtime view](./docs/images/flux-runtime.png) | [runtime.drawio](./docs/infra/flux/runtime.drawio) | F1, F2, F3 |
+| Ops / Build (L1) | ![Ops view](./docs/images/flux-ops.png) | [ops.drawio](./docs/infra/flux/ops.drawio) | F4, F5, F6 |
+
+- Combined multi-page file (context / runtime / ops as pages): [docs/infra/flux/flux.drawio](./docs/infra/flux/flux.drawio)
+- Master flux model + component registry + view index: [docs/infra/flux/flux-model.md](./docs/infra/flux/flux-model.md)
 
 ### Key architectural decisions
 
@@ -177,9 +201,18 @@ Deployment is an on-prem / Docker setup: a single dev-mode container (`maven:3.9
 
 - **No frontend in this repository.** This is a backend-only repo; no SPA/web client source exists here.
 - **No CI/CD pipeline configuration.** No `.github/workflows`, `.gitlab-ci.yml`, `Jenkinsfile`, or `.circleci/` — build/test/deploy is manual (Maven Wrapper / Docker).
-- **No automated tests.** There is no `src/test` directory; the only test-related artifact is the `spring-security-test` dependency. `spring-boot-starter-test` is not declared.
+- **Test coverage is focused, not exhaustive.** The suite under `src/test/java` (18 tests) covers `JwtUtil`, `AuthService`, and the auth/voyage web layer via unit and `@WebMvcTest` slices; full-context (`@SpringBootTest`) and DB-integration tests are not yet present (they would need an H2 or Testcontainers datasource).
 - **No `docker-compose` / external PostgreSQL provisioning.** The `Dockerfile` runs only the application and does not start a database; PostgreSQL must be provided separately.
 - **No migration tooling wired.** A hand-written `V1__Init_Setup.sql` exists (Flyway-style naming) but no Flyway or Liquibase dependency is present and nothing executes it; the schema is governed by Hibernate `ddl-auto`.
+
+## Project guidance
+
+Conventions for working in this repository are documented for both humans and coding agents:
+
+- [AGENTS.md](./AGENTS.md) - complete, self-contained contributor/agent guide (project facts, navigation, conventions, before-finishing checks).
+- [ARCHITECTURE.md](./ARCHITECTURE.md) - layered design, trust boundaries, and the diagram index.
+- [CLEAN-CODE.md](./CLEAN-CODE.md) - code-quality standards and the conventions observed in this codebase.
+- [TESTING.md](./TESTING.md) - testing approach, how to run the suite, and the path to integration tests.
 
 ## License
 
